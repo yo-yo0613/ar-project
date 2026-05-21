@@ -48,7 +48,13 @@ const MindARScene: React.FC = () => {
     // Start MindAR
     const startAR = async () => {
       try {
+        const anchor = mindar.addAnchor(0); // Anchor MUST be added before start()
         await mindar.start();
+        
+        // Force MindAR to recalculate video layout
+        setTimeout(() => {
+          window.dispatchEvent(new Event('resize'));
+        }, 100);
         
         // Setup R3F Root inside MindAR's scene
         const root = createRoot(containerRef.current!);
@@ -59,8 +65,6 @@ const MindARScene: React.FC = () => {
           events,
           size: { width: window.innerWidth, height: window.innerHeight, top: 0, left: 0 }
         });
-
-        const anchor = mindar.addAnchor(0); // Anchor 0 is the first marker in targets.mind
         
         // Render our React Tree
         root.render(<ARAnchorSync anchorGroup={anchor.group} />);
