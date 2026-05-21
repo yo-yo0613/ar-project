@@ -3,30 +3,16 @@ import { MindARThree } from 'mind-ar/dist/mindar-image-three.prod.js';
 import { createRoot, events, useFrame } from '@react-three/fiber';
 import { CompanionCharacter } from './CompanionCharacter';
 
-// R3F Component to sync with MindAR anchor
-const ARAnchorSync: React.FC<{ anchorGroup: import('three').Group, mindar: any }> = ({ anchorGroup, mindar }) => {
-  const groupRef = useRef<import('three').Group>(null);
-  
+import { createPortal } from '@react-three/fiber';
+
+// Update AR tracking within R3F's own loop
+const MindARUpdater: React.FC<{ mindar: any }> = ({ mindar }) => {
   useFrame(() => {
     if (mindar) {
-      mindar.update(); // Update AR tracking within R3F's own loop!
-    }
-    if (groupRef.current && anchorGroup) {
-      // Sync visibility and matrix from MindAR's anchor to our R3F group
-      groupRef.current.matrix.copy(anchorGroup.matrix);
-      groupRef.current.visible = anchorGroup.visible;
+      mindar.update(); 
     }
   });
-
-  return (
-    <group ref={groupRef} matrixAutoUpdate={false}>
-      <React.Suspense fallback={null}>
-        <CompanionCharacter />
-      </React.Suspense>
-      <ambientLight intensity={1} />
-      <directionalLight position={[10, 10, 10]} intensity={2} />
-    </group>
-  );
+  return null;
 };
 
 // Wrapper component to bridge MindAR and R3F
@@ -59,6 +45,9 @@ const MindARScene: React.FC = () => {
           window.dispatchEvent(new Event('resize'));
         }, 100);
         
+        // Prevent R3F from overwriting MindAR's camera projection matrix
+        (camera as any).manual = true;
+        
         // Setup R3F Root inside MindAR's scene
         const root = createRoot(containerRef.current!);
         root.configure({
@@ -71,7 +60,19 @@ const MindARScene: React.FC = () => {
         
         // Render our React Tree
         // R3F will automatically start its own animation loop.
-        root.render(<ARAnchorSync anchorGroup={anchor.group} mindar={mindar} />);
+        root.render(
+          <>
+            <MindARUpdater mindar={mindar} />
+            <ambientLight intensity={1} />
+            <directionalLight position={[10, 10, 10]} intensity={2} />
+            {createPortal(
+              <React.Suspense fallback={null}>
+                <CompanionCharacter />
+              </React.Suspense>,
+              anchor.group
+            )}
+          </>
+        );
 
       } catch (err) {
         console.error("Error starting MindAR", err);

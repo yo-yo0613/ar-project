@@ -6,7 +6,7 @@ import { useTimer } from '../context/TimerContext';
 export const CompanionCharacter: React.FC = () => {
   const { companionState, triggerCompanionReaction } = useTimer();
   const meshRef = useRef<THREE.Mesh>(null);
-  
+
   // Load textures for the 2D sprite states
   const [idleTex, happyTex, focusTex] = useLoader(THREE.TextureLoader, [
     '/companion_idle.png',
