@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MindARThree } from 'mind-ar/dist/mindar-image-three.prod.js';
-import { useFrame, useThree, createRoot, events } from '@react-three/fiber';
+import { createRoot, events } from '@react-three/fiber';
 import { CompanionCharacter } from './CompanionCharacter';
 
 // Wrapper component to bridge MindAR and R3F
@@ -34,7 +34,7 @@ const MindARScene: React.FC = () => {
           scene: scene,
           gl: renderer,
           events,
-          size: { width: window.innerWidth, height: window.innerHeight }
+          size: { width: window.innerWidth, height: window.innerHeight, top: 0, left: 0 }
         });
 
         const anchor = mindar.addAnchor(0); // Anchor 0 is the first marker in targets.mind

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { TimerProvider } from './context/TimerContext';
 import { ARScene } from './components/ARScene';
 import { OverlayUI } from './components/OverlayUI';
