@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { TimerProvider } from './context/TimerContext';
-import { ARScene } from './components/ARScene';
+import { ARSceneAFrame } from './components/ARSceneAFrame';
 import { OverlayUI } from './components/OverlayUI';
 
 function App() {
@@ -28,7 +28,7 @@ function App() {
           </div>
         ) : (
           <>
-            <ARScene />
+            <ARSceneAFrame />
             <OverlayUI />
           </>
         )}

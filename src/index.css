@@ -154,15 +154,7 @@ body {
   z-index: 1;
 }
 
-/* MindAR Video & Canvas centering fix */
-.ar-container video,
-.ar-container canvas {
-  left: 50% !important;
-  top: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  margin-left: 0 !important;
-  margin-top: 0 !important;
-}
+
 
 /* MindAR UI Hiding */
 .mindar-ui-overlay {
