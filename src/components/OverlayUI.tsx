@@ -6,6 +6,7 @@ import { Settings, X } from 'lucide-react';
 export const OverlayUI: React.FC = () => {
   const { workDuration, breakDuration, setWorkDuration, setBreakDuration, isActive } = useTimer();
   const [showSettings, setShowSettings] = useState(false);
+  const [showTimer, setShowTimer] = useState(true);
 
   return (
     <div className="ui-layer">
@@ -14,15 +15,24 @@ export const OverlayUI: React.FC = () => {
         <h1 style={{ fontSize: '1.5rem', fontWeight: 800, textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
           AR Study Buddy
         </h1>
-        <button 
-          className="glass-button" 
-          onClick={() => setShowSettings(!showSettings)}
-          style={{ width: '40px', height: '40px' }}
-          disabled={isActive}
-          title={isActive ? "Pause timer to change settings" : "Settings"}
-        >
-          {showSettings ? <X size={18} /> : <Settings size={18} />}
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button 
+            className="glass-button" 
+            onClick={() => setShowTimer(!showTimer)}
+            style={{ padding: '0 12px', height: '40px', fontSize: '0.9rem', fontWeight: 'bold' }}
+          >
+            {showTimer ? 'Hide Timer' : 'Show Timer'}
+          </button>
+          <button 
+            className="glass-button" 
+            onClick={() => setShowSettings(!showSettings)}
+            style={{ width: '40px', height: '40px' }}
+            disabled={isActive}
+            title={isActive ? "Pause timer to change settings" : "Settings"}
+          >
+            {showSettings ? <X size={18} /> : <Settings size={18} />}
+          </button>
+        </div>
       </div>
 
       {/* Settings Modal (if open) */}
@@ -66,7 +76,14 @@ export const OverlayUI: React.FC = () => {
       )}
 
       {/* Bottom Area: Timer */}
-      <div style={{ alignSelf: 'center', marginBottom: '2rem' }}>
+      <div style={{ 
+        alignSelf: 'center', 
+        marginBottom: '2rem', 
+        transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+        opacity: showTimer ? 1 : 0,
+        transform: showTimer ? 'translateY(0)' : 'translateY(50px)',
+        pointerEvents: showTimer ? 'auto' : 'none'
+      }}>
         <PomodoroTimer />
       </div>
     </div>
