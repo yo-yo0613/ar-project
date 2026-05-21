@@ -17,7 +17,9 @@ const ARAnchorSync: React.FC<{ anchorGroup: import('three').Group }> = ({ anchor
 
   return (
     <group ref={groupRef} matrixAutoUpdate={false}>
-      <CompanionCharacter />
+      <React.Suspense fallback={null}>
+        <CompanionCharacter />
+      </React.Suspense>
       <ambientLight intensity={1} />
       <directionalLight position={[10, 10, 10]} intensity={2} />
     </group>
@@ -86,7 +88,7 @@ const MindARScene: React.FC = () => {
   return (
     <div 
       ref={containerRef} 
-      style={{ width: '100vw', height: '100vh', position: 'absolute', top: 0, left: 0, zIndex: 1, overflow: 'hidden' }} 
+      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1, overflow: 'hidden' }} 
     />
   );
 };

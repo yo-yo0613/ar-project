@@ -8,7 +8,7 @@ function App() {
 
   return (
     <TimerProvider>
-      <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', position: 'relative' }}>
+      <div style={{ width: '100%', height: '100dvh', overflow: 'hidden', position: 'relative' }}>
         
         {!arStarted ? (
           <div className="ui-layer" style={{ justifyContent: 'center', alignItems: 'center', backgroundColor: 'var(--bg-dark)' }}>
