@@ -1,7 +1,28 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MindARThree } from 'mind-ar/dist/mindar-image-three.prod.js';
-import { createRoot, events } from '@react-three/fiber';
+import { createRoot, events, useFrame } from '@react-three/fiber';
 import { CompanionCharacter } from './CompanionCharacter';
+
+// R3F Component to sync with MindAR anchor
+const ARAnchorSync: React.FC<{ anchorGroup: import('three').Group }> = ({ anchorGroup }) => {
+  const groupRef = useRef<import('three').Group>(null);
+  
+  useFrame(() => {
+    if (groupRef.current && anchorGroup) {
+      // Sync visibility and matrix from MindAR's anchor to our R3F group
+      groupRef.current.matrix.copy(anchorGroup.matrix);
+      groupRef.current.visible = anchorGroup.visible;
+    }
+  });
+
+  return (
+    <group ref={groupRef} matrixAutoUpdate={false}>
+      <CompanionCharacter />
+      <ambientLight intensity={1} />
+      <directionalLight position={[10, 10, 10]} intensity={2} />
+    </group>
+  );
+};
 
 // Wrapper component to bridge MindAR and R3F
 const MindARScene: React.FC = () => {
@@ -39,14 +60,8 @@ const MindARScene: React.FC = () => {
 
         const anchor = mindar.addAnchor(0); // Anchor 0 is the first marker in targets.mind
         
-        // We render our R3F component tree attached to the anchor
-        root.render(
-          <primitive object={anchor.group}>
-            <CompanionCharacter />
-            <ambientLight intensity={1} />
-            <directionalLight position={[10, 10, 10]} intensity={2} />
-          </primitive>
-        );
+        // Render our React Tree
+        root.render(<ARAnchorSync anchorGroup={anchor.group} />);
 
         // Custom render loop
         renderer.setAnimationLoop(() => {
@@ -71,7 +86,7 @@ const MindARScene: React.FC = () => {
   return (
     <div 
       ref={containerRef} 
-      style={{ width: '100vw', height: '100vh', position: 'absolute', top: 0, left: 0, zIndex: 1 }} 
+      style={{ width: '100vw', height: '100vh', position: 'absolute', top: 0, left: 0, zIndex: 1, overflow: 'hidden' }} 
     />
   );
 };
