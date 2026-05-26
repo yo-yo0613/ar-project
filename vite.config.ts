@@ -10,7 +10,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,mind,glb,gltf,mp3}']
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,mind,glb,gltf,mp3}'],
+        maximumFileSizeToCacheInBytes: 10000000 // 10MB limit
       },
       manifest: {
         name: 'AR Study Buddy',
