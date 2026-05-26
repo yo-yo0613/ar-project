@@ -2,6 +2,7 @@
 import React, { useMemo } from 'react';
 import 'aframe';
 import 'mind-ar/dist/mindar-image-aframe.prod.js';
+import './aframe-components'; // Import our custom dynamic-sprite component
 import { useTimer } from '../context/TimerContext';
 
 export const ARSceneAFrame: React.FC = () => {
@@ -26,11 +27,11 @@ export const ARSceneAFrame: React.FC = () => {
         
         <a-entity mindar-image-target="targetIndex: 0">
           <a-plane 
+            dynamic-sprite={`state: ${companionState}; front: ${activeTexturePath}; side: ${activeTexturePath}; back: ${activeTexturePath}`}
             src={activeTexturePath} 
             position="0 0 0" 
             height="1" 
             width="1" 
-            rotation="0 0 0"
             material="transparent: true;"
           ></a-plane>
         </a-entity>

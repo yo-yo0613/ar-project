@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 
 type TimerMode = 'work' | 'break';
@@ -9,6 +9,8 @@ interface TimerContextType {
   mode: TimerMode;
   workDuration: number;
   breakDuration: number;
+  audioUrl: string;
+  setAudioUrl: (url: string) => void;
   toggleTimer: () => void;
   resetTimer: () => void;
   setWorkDuration: (mins: number) => void;
@@ -28,6 +30,24 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [isActive, setIsActive] = useState(false);
   const [mode, setMode] = useState<TimerMode>('work');
   const [companionState, setCompanionState] = useState<'idle' | 'happy' | 'focus'>('idle');
+  const [audioUrl, setAudioUrl] = useState<string>('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+  
+  const targetEndTime = useRef<number | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Request Notification Permission on mount
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+      Notification.requestPermission();
+    }
+    audioRef.current = new Audio(audioUrl);
+  }, []);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.src = audioUrl;
+    }
+  }, [audioUrl]);
 
   // Triggered when user pokes the companion
   const triggerCompanionReaction = () => {
@@ -37,37 +57,75 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }, 2000);
   };
 
+  // Reset timer when duration or mode changes (if not active)
   useEffect(() => {
-    setTimeLeft(mode === 'work' ? workDuration * 60 : breakDuration * 60);
-  }, [workDuration, breakDuration, mode]);
+    if (!isActive) {
+      setTimeLeft(mode === 'work' ? workDuration * 60 : breakDuration * 60);
+    }
+  }, [workDuration, breakDuration, mode, isActive]);
 
   useEffect(() => {
     let interval: number | undefined;
 
-    if (isActive && timeLeft > 0) {
-      interval = window.setInterval(() => {
-        setTimeLeft((time) => time - 1);
-      }, 1000);
+    if (isActive && targetEndTime.current !== null) {
       setCompanionState('focus');
-    } else if (isActive && timeLeft === 0) {
-      setIsActive(false);
-      setCompanionState('happy'); // Celebrate finishing a session
-      // Switch modes automatically?
-      setTimeout(() => {
-        setMode(prev => prev === 'work' ? 'break' : 'work');
-      }, 3000);
+      
+      interval = window.setInterval(() => {
+        const now = Date.now();
+        const remaining = Math.max(0, Math.ceil((targetEndTime.current! - now) / 1000));
+        setTimeLeft(remaining);
+
+        if (remaining <= 0) {
+          // Timer finished!
+          setIsActive(false);
+          targetEndTime.current = null;
+          setCompanionState('happy'); 
+          
+          // Play Audio
+          if (audioRef.current) {
+            audioRef.current.play().catch(e => console.log('Audio play failed:', e));
+          }
+
+          // Show Notification
+          const title = mode === 'work' ? 'Focus Session Complete!' : 'Break Time Over!';
+          const body = mode === 'work' ? 'Great job! Time for a break.' : 'Ready to focus again?';
+          
+          if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification(title, { body, icon: '/companion_happy.png' });
+          } else {
+            alert(`${title}\n${body}`); // Fallback
+          }
+
+          // Switch modes automatically
+          setTimeout(() => {
+            setMode(prev => prev === 'work' ? 'break' : 'work');
+          }, 3000);
+        }
+      }, 200); // Check frequently (5 times a second)
     } else if (!isActive) {
       setCompanionState('idle');
+      targetEndTime.current = null;
     }
 
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, timeLeft, mode]);
+  }, [isActive, mode]);
 
-  const toggleTimer = () => setIsActive(!isActive);
+  const toggleTimer = () => {
+    if (!isActive) {
+      // Starting the timer
+      targetEndTime.current = Date.now() + timeLeft * 1000;
+    } else {
+      // Pausing the timer
+      targetEndTime.current = null;
+    }
+    setIsActive(!isActive);
+  };
+
   const resetTimer = () => {
     setIsActive(false);
+    targetEndTime.current = null;
     setTimeLeft(mode === 'work' ? workDuration * 60 : breakDuration * 60);
   };
 
@@ -78,6 +136,8 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       mode,
       workDuration,
       breakDuration,
+      audioUrl,
+      setAudioUrl,
       toggleTimer,
       resetTimer,
       setWorkDuration,

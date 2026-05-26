@@ -4,7 +4,7 @@ import { useTimer } from '../context/TimerContext';
 import { Settings, X } from 'lucide-react';
 
 export const OverlayUI: React.FC = () => {
-  const { workDuration, breakDuration, setWorkDuration, setBreakDuration, isActive } = useTimer();
+  const { workDuration, breakDuration, setWorkDuration, setBreakDuration, isActive, setAudioUrl } = useTimer();
   const [showSettings, setShowSettings] = useState(false);
   const [showTimer, setShowTimer] = useState(true);
 
@@ -70,6 +70,24 @@ export const OverlayUI: React.FC = () => {
               onChange={(e) => setBreakDuration(Number(e.target.value) || 5)}
               min={1}
               max={60}
+            />
+          </div>
+          <div style={{ marginTop: '16px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+              Custom Alarm Sound
+            </label>
+            <input 
+              type="file" 
+              accept="audio/*"
+              className="glass-input"
+              style={{ padding: '4px', fontSize: '0.8rem' }}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  const url = URL.createObjectURL(file);
+                  setAudioUrl(url); 
+                }
+              }}
             />
           </div>
         </div>
