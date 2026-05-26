@@ -86,12 +86,25 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             audioRef.current.play().catch(e => console.log('Audio play failed:', e));
           }
 
-          // Show Notification
+          // Show Notification (Native Mobile Style via Service Worker)
           const title = mode === 'work' ? 'Focus Session Complete!' : 'Break Time Over!';
           const body = mode === 'work' ? 'Great job! Time for a break.' : 'Ready to focus again?';
           
           if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification(title, { body, icon: '/companion_happy.png' });
+            if ('serviceWorker' in navigator) {
+              navigator.serviceWorker.ready.then(registration => {
+                registration.showNotification(title, { 
+                  body, 
+                  icon: '/companion_happy.png',
+                  vibrate: [200, 100, 200, 100, 200, 100, 200] 
+                });
+              }).catch(err => {
+                // Fallback if SW is not ready
+                new Notification(title, { body, icon: '/companion_happy.png' });
+              });
+            } else {
+              new Notification(title, { body, icon: '/companion_happy.png' });
+            }
           } else {
             alert(`${title}\n${body}`); // Fallback
           }
