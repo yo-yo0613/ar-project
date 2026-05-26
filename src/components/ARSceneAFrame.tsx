@@ -2,7 +2,7 @@
 import React, { useMemo } from 'react';
 import 'aframe';
 import 'mind-ar/dist/mindar-image-aframe.prod.js';
-import './aframe-components'; // Import our custom dynamic-sprite component
+import '../aframe-components'; // Import our custom dynamic-sprite component
 import { useTimer } from '../context/TimerContext';
 
 export const ARSceneAFrame: React.FC = () => {
