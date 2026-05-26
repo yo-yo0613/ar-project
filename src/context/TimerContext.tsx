@@ -35,11 +35,8 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const targetEndTime = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Request Notification Permission on mount
+  // Initialize Audio
   useEffect(() => {
-    if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-      Notification.requestPermission();
-    }
     audioRef.current = new Audio(audioUrl);
   }, []);
 
@@ -125,10 +122,20 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     };
   }, [isActive, mode]);
 
-  const toggleTimer = () => {
+  const toggleTimer = async () => {
+    // iOS Safari requires permission request to be triggered by a user action
+    if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+      await Notification.requestPermission();
+    }
+
     if (!isActive) {
       // Starting the timer
       targetEndTime.current = Date.now() + timeLeft * 1000;
+      
+      // Pre-load audio to bypass iOS audio restrictions
+      if (audioRef.current) {
+        audioRef.current.load();
+      }
     } else {
       // Pausing the timer
       targetEndTime.current = null;
