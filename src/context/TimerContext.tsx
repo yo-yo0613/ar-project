@@ -97,8 +97,8 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
                   body, 
                   icon: '/companion_happy.png',
                   vibrate: [200, 100, 200, 100, 200, 100, 200] 
-                });
-              }).catch(err => {
+                } as any);
+              }).catch(() => {
                 // Fallback if SW is not ready
                 new Notification(title, { body, icon: '/companion_happy.png' });
               });
