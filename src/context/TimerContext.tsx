@@ -2,6 +2,8 @@ import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 
 type TimerMode = 'work' | 'break';
+export type AppState = 'selection' | 'ready' | 'focusing' | 'completed' | 'feeding';
+export type CompanionState = 'idle' | 'sad' | 'angry' | 'happy';
 
 interface TimerContextType {
   timeLeft: number;
@@ -16,9 +18,16 @@ interface TimerContextType {
   setWorkDuration: (mins: number) => void;
   setBreakDuration: (mins: number) => void;
   setMode: (mode: TimerMode) => void;
-  companionState: 'idle' | 'happy' | 'focus';
-  setCompanionState: (state: 'idle' | 'happy' | 'focus') => void;
+  companionState: CompanionState;
+  setCompanionState: (state: CompanionState) => void;
   triggerCompanionReaction: () => void;
+  
+  // New App Flow States
+  appState: AppState;
+  setAppState: (state: AppState) => void;
+  subject: string;
+  setSubject: (subject: string) => void;
+  feedCompanion: () => void;
 }
 
 const TimerContext = createContext<TimerContextType | undefined>(undefined);
@@ -29,7 +38,12 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [timeLeft, setTimeLeft] = useState(workDuration * 60);
   const [isActive, setIsActive] = useState(false);
   const [mode, setMode] = useState<TimerMode>('work');
-  const [companionState, setCompanionState] = useState<'idle' | 'happy' | 'focus'>('idle');
+  
+  // New App Flow
+  const [appState, setAppState] = useState<AppState>('selection');
+  const [subject, setSubject] = useState<string>('英文');
+  const [companionState, setCompanionState] = useState<CompanionState>('idle');
+  
   const [audioUrl, setAudioUrl] = useState<string>('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
   
   const targetEndTime = useRef<number | null>(null);
@@ -48,24 +62,28 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   // Triggered when user pokes the companion
   const triggerCompanionReaction = () => {
-    setCompanionState('happy');
-    setTimeout(() => {
-      setCompanionState(isActive ? 'focus' : 'idle');
-    }, 2000);
+    if (appState === 'focusing') {
+      setCompanionState('happy');
+      setTimeout(() => {
+        setCompanionState(isActive ? 'sad' : 'angry');
+      }, 2000);
+    }
   };
 
   // Reset timer when duration or mode changes (if not active)
   useEffect(() => {
-    if (!isActive) {
+    if (!isActive && appState !== 'completed' && appState !== 'feeding') {
       setTimeLeft(mode === 'work' ? workDuration * 60 : breakDuration * 60);
     }
-  }, [workDuration, breakDuration, mode, isActive]);
+  }, [workDuration, breakDuration, mode, isActive, appState]);
 
   useEffect(() => {
     let interval: number | undefined;
 
     if (isActive && targetEndTime.current !== null) {
-      setCompanionState('focus');
+      // During active focus
+      setAppState('focusing');
+      setCompanionState('sad'); // "專注疲累"
       
       interval = window.setInterval(() => {
         const now = Date.now();
@@ -76,14 +94,15 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           // Timer finished!
           setIsActive(false);
           targetEndTime.current = null;
-          setCompanionState('happy'); 
+          setAppState('completed');
+          setCompanionState('happy'); // "完成開心"
           
           // Play Audio
           if (audioRef.current) {
             audioRef.current.play().catch(e => console.log('Audio play failed:', e));
           }
 
-          // Show Notification (Native Mobile Style via Service Worker)
+          // Show Notification
           const title = mode === 'work' ? 'Focus Session Complete!' : 'Break Time Over!';
           const body = mode === 'work' ? 'Great job! Time for a break.' : 'Ready to focus again?';
           
@@ -92,38 +111,30 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
               navigator.serviceWorker.ready.then(registration => {
                 registration.showNotification(title, { 
                   body, 
-                  icon: '/companion_happy.png',
+                  icon: '/monster_happy.png',
                   vibrate: [200, 100, 200, 100, 200, 100, 200] 
                 } as any);
               }).catch(() => {
-                // Fallback if SW is not ready
-                new Notification(title, { body, icon: '/companion_happy.png' });
+                new Notification(title, { body, icon: '/monster_happy.png' });
               });
             } else {
-              new Notification(title, { body, icon: '/companion_happy.png' });
+              new Notification(title, { body, icon: '/monster_happy.png' });
             }
-          } else {
-            alert(`${title}\n${body}`); // Fallback
           }
-
-          // Switch modes automatically
-          setTimeout(() => {
-            setMode(prev => prev === 'work' ? 'break' : 'work');
-          }, 3000);
         }
-      }, 200); // Check frequently (5 times a second)
-    } else if (!isActive) {
-      setCompanionState('idle');
+      }, 200); 
+    } else if (!isActive && appState === 'focusing') {
+      // Paused state
+      setCompanionState('angry'); // "生氣/暫停中"
       targetEndTime.current = null;
     }
 
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, mode]);
+  }, [isActive, mode, appState]);
 
   const toggleTimer = async () => {
-    // iOS Safari requires permission request to be triggered by a user action
     if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
       await Notification.requestPermission();
     }
@@ -131,8 +142,8 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     if (!isActive) {
       // Starting the timer
       targetEndTime.current = Date.now() + timeLeft * 1000;
+      setAppState('focusing');
       
-      // Pre-load audio to bypass iOS audio restrictions
       if (audioRef.current) {
         audioRef.current.load();
       }
@@ -146,7 +157,14 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const resetTimer = () => {
     setIsActive(false);
     targetEndTime.current = null;
+    setAppState('selection');
+    setCompanionState('idle');
     setTimeLeft(mode === 'work' ? workDuration * 60 : breakDuration * 60);
+  };
+
+  const feedCompanion = () => {
+    setAppState('feeding');
+    setCompanionState('happy');
   };
 
   return (
@@ -165,7 +183,12 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       setMode,
       companionState,
       setCompanionState,
-      triggerCompanionReaction
+      triggerCompanionReaction,
+      appState,
+      setAppState,
+      subject,
+      setSubject,
+      feedCompanion
     }}>
       {children}
     </TimerContext.Provider>

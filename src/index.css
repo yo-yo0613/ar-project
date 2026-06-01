@@ -5,14 +5,15 @@
 @tailwind utilities;
 
 :root {
-  --primary: #FF4D85;
-  --secondary: #6B4DFF;
-  --bg-dark: #0F172A;
-  --glass-bg: rgba(15, 23, 42, 0.4);
-  --glass-border: rgba(255, 255, 255, 0.15);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-  --text-main: #F8FAFC;
-  --text-muted: #94A3B8;
+  --primary: #B88655;       /* Warm brown for buttons and active states */
+  --primary-light: #D4A373; /* Lighter brown for hovers */
+  --bg-main: #FDF4E3;       /* Very light warm background */
+  --bg-panel: #F2E4CD;      /* Beige for the bottom panel */
+  --text-main: #5C4033;     /* Dark brown for text */
+  --text-muted: #8B6B52;    /* Medium brown for less important text */
+  --glass-bg: rgba(242, 228, 205, 0.9);
+  --glass-border: rgba(184, 134, 85, 0.3);
+  --glass-shadow: 0 4px 20px rgba(92, 64, 51, 0.15);
 }
 
 * {
@@ -23,7 +24,7 @@
 
 body {
   font-family: 'Outfit', sans-serif;
-  background-color: var(--bg-dark);
+  background-color: var(--bg-main);
   color: var(--text-main);
   overflow: hidden; /* Prevent scrolling in AR view */
   -webkit-font-smoothing: antialiased;
@@ -35,55 +36,61 @@ body {
   position: relative;
 }
 
-/* Glassmorphism Utilities */
-.glass-panel {
-  background: var(--glass-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
+/* New UI Styles */
+.panel {
+  background: var(--bg-panel);
+  border: 4px solid var(--primary-light);
   border-radius: 24px;
 }
 
-.glass-button {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+.action-button {
+  background: var(--primary);
   color: white;
-  border-radius: 50%;
+  border-radius: 999px;
+  padding: 12px 32px;
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: 2px;
+  border: none;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 4px 0 var(--text-muted);
+  transition: all 0.1s ease;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.glass-button:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.05) translateY(-2px);
-  box-shadow: 0 4px 15px rgba(255, 77, 133, 0.3);
-  border-color: var(--primary);
+.action-button:active {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 var(--text-muted);
 }
 
-.glass-button:active {
-  transform: scale(0.95);
+.action-button:hover {
+  background: var(--primary-light);
 }
 
-.glass-button.primary {
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
+.icon-button {
+  background: transparent;
+  color: var(--text-main);
   border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  transition: transform 0.2s ease;
 }
 
-.glass-button.primary:hover {
-  box-shadow: 0 0 20px rgba(255, 77, 133, 0.6);
+.icon-button:active {
+  transform: scale(0.9);
 }
 
 /* Input Fields */
-.glass-input {
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid var(--glass-border);
+.warm-input {
+  background: white;
+  border: 2px solid var(--primary-light);
   border-radius: 12px;
-  color: white;
+  color: var(--text-main);
   padding: 8px 12px;
   font-family: 'Outfit', sans-serif;
   font-size: 1rem;
@@ -91,10 +98,43 @@ body {
   transition: all 0.3s ease;
 }
 
-.glass-input:focus {
+.warm-input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 10px rgba(255, 77, 133, 0.3);
+}
+
+/* Speech Bubble */
+.speech-bubble {
+  background: white;
+  border: 3px solid var(--text-main);
+  border-radius: 20px;
+  padding: 12px 24px;
+  position: relative;
+  font-weight: 800;
+  color: var(--text-main);
+  font-size: 1.1rem;
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.1);
+}
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 15px 15px 0;
+  border-style: solid;
+  border-color: white transparent transparent transparent;
+  z-index: 1;
+}
+.speech-bubble::before {
+  content: '';
+  position: absolute;
+  bottom: -19px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 17px 17px 0;
+  border-style: solid;
+  border-color: var(--text-main) transparent transparent transparent;
 }
 
 /* Animations */

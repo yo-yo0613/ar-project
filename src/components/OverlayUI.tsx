@@ -1,108 +1,128 @@
 import React, { useState } from 'react';
-import { PomodoroTimer } from './PomodoroTimer';
 import { useTimer } from '../context/TimerContext';
-import { Settings, X } from 'lucide-react';
+import { Home, ChevronLeft, ChevronRight, Book, Undo, Play, Pause } from 'lucide-react';
 
 export const OverlayUI: React.FC = () => {
-  const { workDuration, breakDuration, setWorkDuration, setBreakDuration, isActive, setAudioUrl } = useTimer();
-  const [showSettings, setShowSettings] = useState(false);
-  const [showTimer, setShowTimer] = useState(true);
+  const { 
+    timeLeft, 
+    isActive, 
+    toggleTimer, 
+    resetTimer, 
+    appState, 
+    setAppState, 
+    subject, 
+    setSubject,
+    feedCompanion
+  } = useTimer();
+
+  const subjects = ['國文', '英文', '數學', '自然', '社會'];
+  const subjectColors = ['#D97777', '#7799D9', '#77D988', '#D9D377', '#D9A177'];
+  const [subjectIndex, setSubjectIndex] = useState(1); // Default to 英文
+
+  const formatTime = (seconds: number) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    if (h > 0) {
+      return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const getSpeechText = () => {
+    switch (appState) {
+      case 'selection': return '滑動選擇科目';
+      case 'ready': return '點擊下方按鈕開始計時';
+      case 'focusing': 
+        return isActive ? '怎麼來看我啦~' : '你按了暫停，快回來專心！';
+      case 'completed': return '好棒！完成了！來跟我玩吧！';
+      case 'feeding': return '謝謝你陪我玩！\n(點擊BACK選擇其他科目)';
+      default: return '嗨！';
+    }
+  };
+
+  const nextSubject = () => setSubjectIndex((i) => (i + 1) % subjects.length);
+  const prevSubject = () => setSubjectIndex((i) => (i - 1 + subjects.length) % subjects.length);
 
   return (
-    <div className="ui-layer">
-      {/* Top Bar: Title & Settings toggle */}
+    <div className="ui-layer" style={{ padding: '20px 20px 0 20px', pointerEvents: 'none' }}>
+      
+      {/* Top Bar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
-          AR Study Buddy
-        </h1>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button 
-            className="glass-button" 
-            onClick={() => setShowTimer(!showTimer)}
-            style={{ padding: '0 12px', height: '40px', fontSize: '0.9rem', fontWeight: 'bold' }}
-          >
-            {showTimer ? 'Hide Timer' : 'Show Timer'}
-          </button>
-          <button 
-            className="glass-button" 
-            onClick={() => setShowSettings(!showSettings)}
-            style={{ width: '40px', height: '40px' }}
-            disabled={isActive}
-            title={isActive ? "Pause timer to change settings" : "Settings"}
-          >
-            {showSettings ? <X size={18} /> : <Settings size={18} />}
-          </button>
+        <button className="icon-button" onClick={resetTimer} style={{ pointerEvents: 'auto' }}>
+          <Home size={32} color="#5C4033" />
+        </button>
+        <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#5C4033' }}>
+          {appState !== 'selection' ? subject : ''}
         </div>
       </div>
 
-      {/* Settings Modal (if open) */}
-      {showSettings && !isActive && (
-        <div className="glass-panel" style={{ 
-          position: 'absolute', 
-          top: '80px', 
-          right: '2rem', 
-          padding: '20px', 
-          width: '250px',
-          animation: 'pulse 0.3s ease-out'
-        }}>
-          <h3 style={{ marginBottom: '16px', fontSize: '1.1rem' }}>Settings</h3>
-          <div style={{ marginBottom: '12px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-              Focus Duration (mins)
-            </label>
-            <input 
-              type="number" 
-              className="glass-input" 
-              value={workDuration} 
-              onChange={(e) => setWorkDuration(Number(e.target.value) || 25)}
-              min={1}
-              max={120}
-            />
-          </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-              Break Duration (mins)
-            </label>
-            <input 
-              type="number" 
-              className="glass-input" 
-              value={breakDuration} 
-              onChange={(e) => setBreakDuration(Number(e.target.value) || 5)}
-              min={1}
-              max={60}
-            />
-          </div>
-          <div style={{ marginTop: '16px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-              Custom Alarm Sound
-            </label>
-            <input 
-              type="file" 
-              accept="audio/*"
-              className="glass-input"
-              style={{ padding: '4px', fontSize: '0.8rem' }}
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  const url = URL.createObjectURL(file);
-                  setAudioUrl(url); 
-                }
-              }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Bottom Area: Timer */}
+      {/* Center: Speech Bubble (appears above the panel) */}
       <div style={{ 
-        alignSelf: 'center', 
-        marginBottom: '2rem', 
-        transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
-        opacity: showTimer ? 1 : 0,
-        transform: showTimer ? 'translateY(0)' : 'translateY(50px)',
-        pointerEvents: showTimer ? 'auto' : 'none'
+        flex: 1, 
+        display: 'flex', 
+        alignItems: 'flex-end', 
+        justifyContent: 'center', 
+        paddingBottom: '20px' 
       }}>
-        <PomodoroTimer />
+        <div className="speech-bubble" style={{ pointerEvents: 'auto', textAlign: 'center', whiteSpace: 'pre-line' }}>
+          {getSpeechText()}
+        </div>
+      </div>
+
+      {/* Bottom Panel */}
+      <div className="panel" style={{ 
+        height: '180px', 
+        pointerEvents: 'auto',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: '20px'
+      }}>
+        
+        {appState === 'selection' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <button className="icon-button" onClick={prevSubject}><ChevronLeft size={40}/></button>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer' }} 
+                 onClick={() => { setSubject(subjects[subjectIndex]); setAppState('ready'); }}>
+              <Book size={64} color={subjectColors[subjectIndex]} fill={subjectColors[subjectIndex]} style={{ opacity: 0.9 }}/>
+              <span style={{ fontWeight: 800, marginTop: '8px', fontSize: '1.1rem' }}>{subjects[subjectIndex]}</span>
+            </div>
+            <button className="icon-button" onClick={nextSubject}><ChevronRight size={40}/></button>
+          </div>
+        )}
+
+        {appState === 'ready' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
+            <button className="icon-button" onClick={() => setAppState('selection')}><Undo size={32}/></button>
+            <button className="action-button" onClick={toggleTimer} style={{ width: '160px' }}>START</button>
+          </div>
+        )}
+
+        {appState === 'focusing' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
+            <button className="icon-button" onClick={resetTimer}><Undo size={32}/></button>
+            <div style={{ fontSize: '2.5rem', fontWeight: 800, width: '150px', textAlign: 'center' }}>
+              {formatTime(timeLeft)}
+            </div>
+            <button className="icon-button" onClick={toggleTimer}>
+              {isActive ? <Pause size={36} fill="#5C4033"/> : <Play size={36} fill="#5C4033"/>}
+            </button>
+          </div>
+        )}
+
+        {appState === 'completed' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '30px', flexDirection: 'column' }}>
+             <button className="action-button" onClick={feedCompanion} style={{ width: '160px' }}>餵食</button>
+          </div>
+        )}
+
+        {appState === 'feeding' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
+            <button className="action-button" onClick={resetTimer} style={{ width: '160px', background: '#D4A373' }}>BACK</button>
+          </div>
+        )}
+
       </div>
     </div>
   );

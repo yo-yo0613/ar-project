@@ -9,9 +9,10 @@ export const ARSceneAFrame: React.FC = () => {
   const { companionState, triggerCompanionReaction } = useTimer();
 
   const activeTexturePath = useMemo(() => {
-    if (companionState === 'happy') return '/companion_happy.png';
-    if (companionState === 'focus') return '/companion_focus.png';
-    return '/companion_idle.png';
+    if (companionState === 'happy') return '/monster_happy.png';
+    if (companionState === 'sad') return '/monster_sad.png';
+    if (companionState === 'angry') return '/monster_angry.png';
+    return '/monster_idle.png';
   }, [companionState]);
 
   return (
