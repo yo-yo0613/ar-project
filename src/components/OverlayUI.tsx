@@ -81,6 +81,7 @@ export const OverlayUI: React.FC = () => {
         <img 
           src={getMascotImage()} 
           alt="Mascot" 
+          onClick={triggerCompanionReaction}
           style={{ width: '220px', height: 'auto', pointerEvents: 'auto', cursor: 'pointer', filter: 'drop-shadow(0 10px 15px rgba(0,0,0,0.2))' }} 
         />
       </div>
