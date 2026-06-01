@@ -1,12 +1,36 @@
 // @ts-nocheck
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import 'aframe';
 import 'mind-ar/dist/mindar-image-aframe.prod.js';
 import '../aframe-components'; // Import our custom dynamic-sprite component
 import { useTimer } from '../context/TimerContext';
 
 export const ARSceneAFrame: React.FC = () => {
-  const { companionState, triggerCompanionReaction } = useTimer();
+  const { companionState, triggerCompanionReaction, setIsTargetFound } = useTimer();
+  const targetRef = useRef<any>(null);
+
+  useEffect(() => {
+    const targetElement = targetRef.current;
+    if (!targetElement) return;
+
+    const onTargetFound = () => {
+      console.log('Target found!');
+      setIsTargetFound(true);
+    };
+
+    const onTargetLost = () => {
+      console.log('Target lost!');
+      setIsTargetFound(false);
+    };
+
+    targetElement.addEventListener('targetFound', onTargetFound);
+    targetElement.addEventListener('targetLost', onTargetLost);
+
+    return () => {
+      targetElement.removeEventListener('targetFound', onTargetFound);
+      targetElement.removeEventListener('targetLost', onTargetLost);
+    };
+  }, [setIsTargetFound]);
 
   const activeTexturePath = useMemo(() => {
     if (companionState === 'happy') return '/4.jpg';
@@ -26,15 +50,7 @@ export const ARSceneAFrame: React.FC = () => {
       >
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
         
-        <a-entity mindar-image-target="targetIndex: 0">
-          <a-plane 
-            dynamic-sprite={`state: ${companionState}; front: ${activeTexturePath}; side: ${activeTexturePath}; back: ${activeTexturePath}`}
-            src={activeTexturePath} 
-            position="0 0 0" 
-            height="1" 
-            width="1" 
-            material="transparent: true;"
-          ></a-plane>
+        <a-entity ref={targetRef} mindar-image-target="targetIndex: 0">
         </a-entity>
       </a-scene>
     </div>

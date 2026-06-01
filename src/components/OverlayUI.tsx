@@ -11,8 +11,10 @@ export const OverlayUI: React.FC = () => {
     appState, 
     setAppState, 
     subject, 
-    setSubject,
-    feedCompanion
+    feedCompanion,
+    isTargetFound,
+    triggerCompanionReaction,
+    companionState
   } = useTimer();
 
   const subjects = ['國文', '英文', '數學', '自然', '社會'];
@@ -41,6 +43,13 @@ export const OverlayUI: React.FC = () => {
     }
   };
 
+  const getMascotImage = () => {
+    if (companionState === 'happy') return '/4.jpg';
+    if (companionState === 'sad') return '/2.jpg';
+    if (companionState === 'angry') return '/3.jpg';
+    return '/1.jpg'; // idle
+  };
+
   const nextSubject = () => setSubjectIndex((i) => (i + 1) % subjects.length);
   const prevSubject = () => setSubjectIndex((i) => (i - 1 + subjects.length) % subjects.length);
 
@@ -57,7 +66,7 @@ export const OverlayUI: React.FC = () => {
         </div>
       </div>
 
-      {/* Center: Speech Bubble (appears above the panel) */}
+      {/* Center: Speech Bubble & Mascot (appears above the panel) */}
       <div style={{ 
         flex: 1, 
         display: 'flex', 
@@ -66,9 +75,25 @@ export const OverlayUI: React.FC = () => {
         justifyContent: 'flex-end', 
         paddingBottom: '20px' 
       }}>
-        <div className="speech-bubble" style={{ pointerEvents: 'auto', textAlign: 'center', whiteSpace: 'pre-line', marginBottom: '20px' }}>
+        <div className="speech-bubble" style={{ pointerEvents: 'auto', textAlign: 'center', whiteSpace: 'pre-line', marginBottom: '20px', opacity: isTargetFound ? 1 : 0, transition: 'opacity 0.3s' }}>
           {getSpeechText()}
         </div>
+        
+        {isTargetFound && (
+          <img 
+            src={getMascotImage()} 
+            alt="Mascot" 
+            onClick={triggerCompanionReaction}
+            style={{ 
+              width: '280px', 
+              height: 'auto', 
+              pointerEvents: 'auto', 
+              cursor: 'pointer', 
+              filter: 'drop-shadow(0 10px 15px rgba(0,0,0,0.2))',
+              animation: 'float 4s infinite ease-in-out'
+            }} 
+          />
+        )}
       </div>
 
       {/* Bottom Panel */}
@@ -85,7 +110,7 @@ export const OverlayUI: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
             <button className="icon-button" onClick={prevSubject}><ChevronLeft size={40}/></button>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer' }} 
-                 onClick={() => { setSubject(subjects[subjectIndex]); setAppState('ready'); }}>
+                 onClick={() => { setAppState('ready'); }}>
               <Book size={64} color={subjectColors[subjectIndex]} fill={subjectColors[subjectIndex]} style={{ opacity: 0.9 }}/>
               <span style={{ fontWeight: 800, marginTop: '8px', fontSize: '1.1rem' }}>{subjects[subjectIndex]}</span>
             </div>

@@ -28,6 +28,8 @@ interface TimerContextType {
   subject: string;
   setSubject: (subject: string) => void;
   feedCompanion: () => void;
+  isTargetFound: boolean;
+  setIsTargetFound: (found: boolean) => void;
 }
 
 const TimerContext = createContext<TimerContextType | undefined>(undefined);
@@ -43,6 +45,7 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [appState, setAppState] = useState<AppState>('selection');
   const [subject, setSubject] = useState<string>('英文');
   const [companionState, setCompanionState] = useState<CompanionState>('idle');
+  const [isTargetFound, setIsTargetFound] = useState<boolean>(false);
   
   const [audioUrl, setAudioUrl] = useState<string>('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
   
@@ -188,7 +191,9 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       setAppState,
       subject,
       setSubject,
-      feedCompanion
+      feedCompanion,
+      isTargetFound,
+      setIsTargetFound
     }}>
       {children}
     </TimerContext.Provider>
