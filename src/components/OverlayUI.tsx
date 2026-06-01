@@ -12,7 +12,9 @@ export const OverlayUI: React.FC = () => {
     setAppState, 
     subject, 
     setSubject,
-    feedCompanion
+    feedCompanion,
+    companionState,
+    triggerCompanionReaction
   } = useTimer();
 
   const subjects = ['國文', '英文', '數學', '自然', '社會'];
