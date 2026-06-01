@@ -41,6 +41,13 @@ export const OverlayUI: React.FC = () => {
     }
   };
 
+  const getMascotImage = () => {
+    if (companionState === 'happy') return '/monster_happy.png';
+    if (companionState === 'sad') return '/monster_sad.png';
+    if (companionState === 'angry') return '/monster_angry.png';
+    return '/monster_idle.png';
+  };
+
   const nextSubject = () => setSubjectIndex((i) => (i + 1) % subjects.length);
   const prevSubject = () => setSubjectIndex((i) => (i - 1 + subjects.length) % subjects.length);
 
@@ -49,7 +56,7 @@ export const OverlayUI: React.FC = () => {
       
       {/* Top Bar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <button className="icon-button" onClick={resetTimer} style={{ pointerEvents: 'auto' }}>
+        <button className="icon-button" onClick={() => window.location.reload()} style={{ pointerEvents: 'auto' }}>
           <Home size={32} color="#5C4033" />
         </button>
         <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#5C4033' }}>
@@ -57,17 +64,23 @@ export const OverlayUI: React.FC = () => {
         </div>
       </div>
 
-      {/* Center: Speech Bubble (appears above the panel) */}
+      {/* Center: Speech Bubble & Mascot (appears above the panel) */}
       <div style={{ 
         flex: 1, 
         display: 'flex', 
-        alignItems: 'flex-end', 
-        justifyContent: 'center', 
+        flexDirection: 'column',
+        alignItems: 'center', 
+        justifyContent: 'flex-end', 
         paddingBottom: '20px' 
       }}>
-        <div className="speech-bubble" style={{ pointerEvents: 'auto', textAlign: 'center', whiteSpace: 'pre-line' }}>
+        <div className="speech-bubble" style={{ pointerEvents: 'auto', textAlign: 'center', whiteSpace: 'pre-line', marginBottom: '20px' }}>
           {getSpeechText()}
         </div>
+        <img 
+          src={getMascotImage()} 
+          alt="Mascot" 
+          style={{ width: '220px', height: 'auto', pointerEvents: 'auto', cursor: 'pointer', filter: 'drop-shadow(0 10px 15px rgba(0,0,0,0.2))' }} 
+        />
       </div>
 
       {/* Bottom Panel */}

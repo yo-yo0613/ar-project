@@ -203,7 +203,10 @@ video, .a-canvas {
   margin: 0 !important;
 }
 
-/* MindAR UI Hiding */
+/* Hide all MindAR default UI */
+#mindar-ui-scanning,
+#mindar-ui-loading,
+#mindar-ui-overlay,
 .mindar-ui-overlay {
   display: none !important;
 }

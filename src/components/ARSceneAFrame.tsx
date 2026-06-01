@@ -25,17 +25,6 @@ export const ARSceneAFrame: React.FC = () => {
         device-orientation-permission-ui="enabled: false"
       >
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-        
-        <a-entity mindar-image-target="targetIndex: 0">
-          <a-plane 
-            dynamic-sprite={`state: ${companionState}; front: ${activeTexturePath}; side: ${activeTexturePath}; back: ${activeTexturePath}`}
-            src={activeTexturePath} 
-            position="0 0 0" 
-            height="1" 
-            width="1" 
-            material="transparent: true;"
-          ></a-plane>
-        </a-entity>
       </a-scene>
     </div>
   );
