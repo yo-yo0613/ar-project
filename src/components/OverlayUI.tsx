@@ -12,9 +12,7 @@ export const OverlayUI: React.FC = () => {
     setAppState, 
     subject, 
     setSubject,
-    feedCompanion,
-    companionState,
-    triggerCompanionReaction
+    feedCompanion
   } = useTimer();
 
   const subjects = ['國文', '英文', '數學', '自然', '社會'];
@@ -43,13 +41,6 @@ export const OverlayUI: React.FC = () => {
     }
   };
 
-  const getMascotImage = () => {
-    if (companionState === 'happy') return '/monster_happy.png';
-    if (companionState === 'sad') return '/monster_sad.png';
-    if (companionState === 'angry') return '/monster_angry.png';
-    return '/monster_idle.png';
-  };
-
   const nextSubject = () => setSubjectIndex((i) => (i + 1) % subjects.length);
   const prevSubject = () => setSubjectIndex((i) => (i - 1 + subjects.length) % subjects.length);
 
@@ -66,7 +57,7 @@ export const OverlayUI: React.FC = () => {
         </div>
       </div>
 
-      {/* Center: Speech Bubble & Mascot (appears above the panel) */}
+      {/* Center: Speech Bubble (appears above the panel) */}
       <div style={{ 
         flex: 1, 
         display: 'flex', 
@@ -78,12 +69,6 @@ export const OverlayUI: React.FC = () => {
         <div className="speech-bubble" style={{ pointerEvents: 'auto', textAlign: 'center', whiteSpace: 'pre-line', marginBottom: '20px' }}>
           {getSpeechText()}
         </div>
-        <img 
-          src={getMascotImage()} 
-          alt="Mascot" 
-          onClick={triggerCompanionReaction}
-          style={{ width: '220px', height: 'auto', pointerEvents: 'auto', cursor: 'pointer', filter: 'drop-shadow(0 10px 15px rgba(0,0,0,0.2))' }} 
-        />
       </div>
 
       {/* Bottom Panel */}

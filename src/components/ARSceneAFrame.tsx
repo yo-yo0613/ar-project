@@ -9,22 +9,33 @@ export const ARSceneAFrame: React.FC = () => {
   const { companionState, triggerCompanionReaction } = useTimer();
 
   const activeTexturePath = useMemo(() => {
-    if (companionState === 'happy') return '/monster_happy.png';
-    if (companionState === 'sad') return '/monster_sad.png';
-    if (companionState === 'angry') return '/monster_angry.png';
-    return '/monster_idle.png';
+    if (companionState === 'happy') return '/4.jpg';
+    if (companionState === 'sad') return '/2.jpg';
+    if (companionState === 'angry') return '/3.jpg';
+    return '/1.jpg'; // idle
   }, [companionState]);
 
   return (
     <div className="ar-container" onClick={triggerCompanionReaction}>
       <a-scene 
-        mindar-image="imageTargetSrc: /targets.mind; uiScanning: no; uiLoading: yes;" 
+        mindar-image="imageTargetSrc: /targets.mind; uiScanning: no; uiLoading: no;" 
         color-space="sRGB" 
         renderer="colorManagement: true, physicallyCorrectLights" 
         vr-mode-ui="enabled: false" 
         device-orientation-permission-ui="enabled: false"
       >
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+        
+        <a-entity mindar-image-target="targetIndex: 0">
+          <a-plane 
+            dynamic-sprite={`state: ${companionState}; front: ${activeTexturePath}; side: ${activeTexturePath}; back: ${activeTexturePath}`}
+            src={activeTexturePath} 
+            position="0 0 0" 
+            height="1" 
+            width="1" 
+            material="transparent: true;"
+          ></a-plane>
+        </a-entity>
       </a-scene>
     </div>
   );
