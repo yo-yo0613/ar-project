@@ -44,10 +44,10 @@ export const OverlayUI: React.FC = () => {
   };
 
   const getMascotImage = () => {
-    if (companionState === 'happy') return '/IMG_6057.png'; // previously 4.jpg
-    if (companionState === 'sad') return '/IMG_6055.png'; // previously 2.jpg
-    if (companionState === 'angry') return '/IMG_6056.png'; // previously 3.jpg
-    return '/IMG_6054.png'; // idle, previously 1.jpg
+    if (companionState === 'happy') return '/IMG_6057.PNG'; // previously 4.jpg
+    if (companionState === 'sad') return '/IMG_6055.PNG'; // previously 2.jpg
+    if (companionState === 'angry') return '/IMG_6056.PNG'; // previously 3.jpg
+    return '/IMG_6054.PNG'; // idle, previously 1.jpg
   };
 
   const nextSubject = () => setSubjectIndex((i) => (i + 1) % subjects.length);
