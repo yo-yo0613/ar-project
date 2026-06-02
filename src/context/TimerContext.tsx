@@ -114,14 +114,14 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
               navigator.serviceWorker.ready.then(registration => {
                 registration.showNotification(title, { 
                   body, 
-                  icon: '/monster_happy.png',
+                  icon: '/IMG_6057.png',
                   vibrate: [200, 100, 200, 100, 200, 100, 200] 
                 } as any);
               }).catch(() => {
-                new Notification(title, { body, icon: '/monster_happy.png' });
+                new Notification(title, { body, icon: '/IMG_6057.png' });
               });
             } else {
-              new Notification(title, { body, icon: '/monster_happy.png' });
+              new Notification(title, { body, icon: '/IMG_6057.png' });
             }
           }
         }
