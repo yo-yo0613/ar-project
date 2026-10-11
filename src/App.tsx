@@ -19,11 +19,12 @@ const MainContent: React.FC = () => {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '24px 20px',
+        padding: '16px 16px env(safe-area-inset-bottom, 16px) 16px',
+        boxSizing: 'border-box',
         overflowY: 'auto',
       }}>
         <div style={{
-          maxWidth: '380px',
+          maxWidth: '360px',
           width: '100%',
           display: 'flex',
           flexDirection: 'column',
@@ -31,56 +32,56 @@ const MainContent: React.FC = () => {
           textAlign: 'center',
         }}>
           {/* Header Avatar & Title */}
-          <div style={{ position: 'relative', marginBottom: '16px' }}>
+          <div style={{ position: 'relative', marginBottom: '8px' }}>
             <img 
               src="/IMG_6054.PNG" 
               alt="Mascot Icon" 
               style={{
-                width: '110px',
-                height: '110px',
+                width: '76px',
+                height: '76px',
                 borderRadius: '50%',
                 background: '#FFFFFF',
                 border: '3px solid #5C4033',
-                padding: '6px',
-                boxShadow: '0 6px 0 #5C4033',
+                padding: '4px',
+                boxShadow: '0 4px 0 #5C4033',
                 animation: 'float 3.5s infinite ease-in-out'
               }}
             />
             <span style={{
               position: 'absolute',
-              bottom: '-4px',
-              right: '-4px',
+              bottom: '-2px',
+              right: '-2px',
               background: '#B88655',
               color: '#FFFFFF',
               borderRadius: '50%',
-              padding: '6px',
+              padding: '4px',
               border: '2px solid #5C4033',
               display: 'flex'
             }}>
-              <Sparkles size={16} />
+              <Sparkles size={13} />
             </span>
           </div>
 
           <h1 style={{
-            fontSize: '1.75rem',
+            fontSize: '1.45rem',
             fontWeight: 800,
             color: '#5C4033',
-            marginBottom: '6px',
-            letterSpacing: '1px'
+            marginBottom: '4px',
+            letterSpacing: '0.5px'
           }}>
             專注怪獸伴讀鐘 👾
           </h1>
           <p style={{
-            fontSize: '0.95rem',
+            fontSize: '0.85rem',
             color: '#8B6B52',
-            marginBottom: '28px',
+            marginBottom: '14px',
             fontWeight: 600
           }}>
             挑選今天陪伴你的專注方式吧！
           </p>
 
-          {/* Dual Mode Cards (Option A) */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', width: '100%' }}>
+          {/* Dual Mode Cards (Compact and single-line titles) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
             
             {/* Card 1: Mode 1 (AR Companion Mode) */}
             <div 
@@ -88,38 +89,43 @@ const MainContent: React.FC = () => {
               style={{
                 background: 'var(--bg-panel)',
                 border: '3px solid #5C4033',
-                borderRadius: '24px',
-                padding: '20px',
-                boxShadow: '0 6px 0 #5C4033',
+                borderRadius: '20px',
+                padding: '14px 16px',
+                boxShadow: '0 4px 0 #5C4033',
                 cursor: 'pointer',
                 textAlign: 'left',
                 transition: 'all 0.15s ease',
               }}
               className="mode-card"
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{
-                    background: '#B88655',
-                    color: '#FFFFFF',
-                    borderRadius: '12px',
-                    padding: '8px',
-                    display: 'flex',
-                    border: '2px solid #5C4033'
-                  }}>
-                    <Camera size={24} />
-                  </div>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#5C4033' }}>
-                    模式一：AR 伴讀模式
-                  </h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                <div style={{
+                  background: '#B88655',
+                  color: '#FFFFFF',
+                  borderRadius: '10px',
+                  padding: '6px',
+                  display: 'flex',
+                  border: '2px solid #5C4033',
+                  flexShrink: 0
+                }}>
+                  <Camera size={20} />
                 </div>
+                <h3 style={{ 
+                  fontSize: '1.12rem', 
+                  fontWeight: 800, 
+                  color: '#5C4033',
+                  whiteSpace: 'nowrap',
+                  margin: 0
+                }}>
+                  模式一：AR 伴讀模式
+                </h3>
               </div>
-              <p style={{ fontSize: '0.88rem', color: '#5C4033', lineHeight: 1.5, marginBottom: '14px', fontWeight: 600 }}>
+              <p style={{ fontSize: '0.82rem', color: '#5C4033', lineHeight: 1.4, marginBottom: '10px', fontWeight: 600 }}>
                 掃描實體卡片召喚怪獸監督！翻頁手晃自帶 15 秒寬限緩衝防閃退。
               </p>
               <button 
                 className="action-button" 
-                style={{ width: '100%', padding: '10px', fontSize: '1.05rem', background: '#B88655' }}
+                style={{ width: '100%', padding: '9px', fontSize: '0.98rem', background: '#B88655', borderRadius: '999px' }}
               >
                 開啟 AR 伴讀 ➔
               </button>
@@ -131,38 +137,43 @@ const MainContent: React.FC = () => {
               style={{
                 background: '#FFFFFF',
                 border: '3px solid #5C4033',
-                borderRadius: '24px',
-                padding: '20px',
-                boxShadow: '0 6px 0 #5C4033',
+                borderRadius: '20px',
+                padding: '14px 16px',
+                boxShadow: '0 4px 0 #5C4033',
                 cursor: 'pointer',
                 textAlign: 'left',
                 transition: 'all 0.15s ease',
               }}
               className="mode-card"
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{
-                    background: '#7799D9',
-                    color: '#FFFFFF',
-                    borderRadius: '12px',
-                    padding: '8px',
-                    display: 'flex',
-                    border: '2px solid #5C4033'
-                  }}>
-                    <BookOpen size={24} />
-                  </div>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#5C4033' }}>
-                    模式二：桌面純淨專注
-                  </h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                <div style={{
+                  background: '#7799D9',
+                  color: '#FFFFFF',
+                  borderRadius: '10px',
+                  padding: '6px',
+                  display: 'flex',
+                  border: '2px solid #5C4033',
+                  flexShrink: 0
+                }}>
+                  <BookOpen size={20} />
                 </div>
+                <h3 style={{ 
+                  fontSize: '1.12rem', 
+                  fontWeight: 800, 
+                  color: '#5C4033',
+                  whiteSpace: 'nowrap',
+                  margin: 0
+                }}>
+                  模式二：桌面純淨模式
+                </h3>
               </div>
-              <p style={{ fontSize: '0.88rem', color: '#5C4033', lineHeight: 1.5, marginBottom: '14px', fontWeight: 600 }}>
+              <p style={{ fontSize: '0.82rem', color: '#5C4033', lineHeight: 1.4, marginBottom: '10px', fontWeight: 600 }}>
                 不開鏡頭、零發熱超省電！怪獸直接在螢幕常亮待機，適合圖書館自習。
               </p>
               <button 
                 className="action-button" 
-                style={{ width: '100%', padding: '10px', fontSize: '1.05rem', background: '#7799D9' }}
+                style={{ width: '100%', padding: '9px', fontSize: '0.98rem', background: '#7799D9', borderRadius: '999px' }}
               >
                 開啟桌面專注 ➔
               </button>
@@ -171,8 +182,8 @@ const MainContent: React.FC = () => {
           </div>
 
           {/* Bottom Reminder */}
-          <p style={{ marginTop: '24px', fontSize: '0.8rem', color: '#8B6B52', fontWeight: 600 }}>
-            💡 提示：專注中若滑開 App 去回訊息，怪獸會生氣把介面散架喔！
+          <p style={{ marginTop: '14px', fontSize: '0.78rem', color: '#8B6B52', fontWeight: 600, margin: '14px 0 0 0' }}>
+            💡 提示：專注中若滑開 App 回訊息，怪獸會生氣把介面散架喔！
           </p>
         </div>
       </div>
