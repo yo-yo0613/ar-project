@@ -33,10 +33,10 @@ export const ARSceneAFrame: React.FC = () => {
   }, [setIsTargetFound]);
 
   const activeTexturePath = useMemo(() => {
-    if (companionState === 'happy') return '/IMG_6057.png';
-    if (companionState === 'sad') return '/IMG_6055.png';
-    if (companionState === 'angry') return '/IMG_6056.png';
-    return '/IMG_6054.png'; // idle
+    if (companionState === 'happy') return '/IMG_6057.PNG';
+    if (companionState === 'sad') return '/IMG_6055.PNG';
+    if (companionState === 'angry') return '/IMG_6056.PNG';
+    return '/IMG_6054.PNG'; // idle
   }, [companionState]);
 
   return (

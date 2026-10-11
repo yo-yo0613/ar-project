@@ -43,6 +43,16 @@ body {
   border-radius: 24px;
 }
 
+.mode-card:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.02);
+}
+
+.mode-card:active {
+  transform: translateY(3px);
+  box-shadow: 0 3px 0 #5C4033 !important;
+}
+
 .action-button {
   background: var(--primary);
   color: white;
