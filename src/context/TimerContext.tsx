@@ -19,6 +19,7 @@ interface TimerContextType {
   setWorkDuration: (mins: number) => void;
   setBreakDuration: (mins: number) => void;
   setPresetDuration: (mins: number) => void;
+  setPresetSeconds: (secs: number) => void;
   setMode: (mode: TimerMode) => void;
   companionState: CompanionState;
   setCompanionState: (state: CompanionState) => void;
@@ -210,6 +211,13 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   };
 
+  const setPresetSeconds = (secs: number) => {
+    setWorkDuration(Math.max(1, Math.round(secs / 60)));
+    if (!isActive) {
+      setTimeLeft(secs);
+    }
+  };
+
   // Triggered when user pokes the companion
   const triggerCompanionReaction = () => {
     if (appState === 'focusing' && !isDistracted) {
@@ -377,6 +385,7 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       setWorkDuration,
       setBreakDuration,
       setPresetDuration,
+      setPresetSeconds,
       setMode,
       companionState,
       setCompanionState,

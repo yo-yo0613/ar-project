@@ -18,6 +18,7 @@ export const OverlayUI: React.FC = () => {
     companionState,
     workDuration,
     setPresetDuration,
+    setPresetSeconds,
     modeType,
     isGracePeriod,
     isConfirmingExit,
@@ -217,9 +218,9 @@ export const OverlayUI: React.FC = () => {
         {appState === 'ready' && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', width: '100%' }}>
             {/* Quick Duration Capsules (Option A) */}
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
               {[15, 25, 45].map((mins) => {
-                const isSelected = workDuration === mins;
+                const isSelected = workDuration === mins && timeLeft === mins * 60;
                 return (
                   <button
                     key={mins}
@@ -229,18 +230,36 @@ export const OverlayUI: React.FC = () => {
                       color: isSelected ? '#FFFFFF' : '#5C4033',
                       border: '2px solid #5C4033',
                       borderRadius: '999px',
-                      padding: '6px 16px',
-                      fontSize: '0.9rem',
+                      padding: '5px 14px',
+                      fontSize: '0.88rem',
                       fontWeight: 800,
                       cursor: 'pointer',
                       boxShadow: isSelected ? '0 3px 0 #5C4033' : 'none',
                       transition: 'all 0.15s ease'
                     }}
                   >
-                    {mins} 分鐘
+                    {mins} 分
                   </button>
                 );
               })}
+              <button
+                onClick={() => setPresetSeconds(5)}
+                style={{
+                  background: timeLeft === 5 ? '#D97777' : '#FFFFFF',
+                  color: timeLeft === 5 ? '#FFFFFF' : '#D97777',
+                  border: '2px solid #D97777',
+                  borderRadius: '999px',
+                  padding: '5px 12px',
+                  fontSize: '0.85rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  boxShadow: timeLeft === 5 ? '0 3px 0 #5C4033' : 'none',
+                  transition: 'all 0.15s ease'
+                }}
+                title="快速測試 5 秒後的震動與提醒"
+              >
+                ⚡ 5秒測試
+              </button>
             </div>
 
             {/* Library Mode Switch (Option A) */}
