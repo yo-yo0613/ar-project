@@ -13,7 +13,7 @@ export const AntiGravityCanvas: React.FC<AntiGravityCanvasProps> = ({ scenario }
   const renderRef = useRef<Matter.Render | null>(null);
   const runnerRef = useRef<Matter.Runner | null>(null);
 
-  const { recoverFromDistraction, resetTimer } = useTimer();
+  const { recoverFromDistraction, resetTimer, startBreakSession, breakDuration, isQuickTest } = useTimer();
 
   useEffect(() => {
     if (!sceneRef.current) return;
@@ -297,21 +297,37 @@ export const AntiGravityCanvas: React.FC<AntiGravityCanvasProps> = ({ scenario }
             我反省好了，重新專注！
           </button>
         ) : (
-          <button
-            className="action-button"
-            onClick={resetTimer}
-            style={{
-              padding: '14px 28px',
-              fontSize: '1.15rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              backgroundColor: '#D4A373',
-            }}
-          >
-            <ArrowLeft size={22} />
-            餵飽了，回到科目選擇
-          </button>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <button
+              className="action-button"
+              onClick={() => startBreakSession()}
+              style={{
+                padding: '12px 22px',
+                fontSize: '1.02rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                backgroundColor: '#B88655',
+              }}
+            >
+              ☕ 餵飽了，開始休息 {isQuickTest && breakDuration < 1 ? '5秒' : `${breakDuration}分`} ➔
+            </button>
+            <button
+              className="action-button"
+              onClick={resetTimer}
+              style={{
+                padding: '12px 18px',
+                fontSize: '0.92rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                backgroundColor: '#D4A373',
+              }}
+            >
+              <ArrowLeft size={18} />
+              回科目
+            </button>
+          </div>
         )}
       </div>
     </div>

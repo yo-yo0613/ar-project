@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 
 type TimerMode = 'work' | 'break';
-export type AppState = 'selection' | 'ready' | 'focusing' | 'completed' | 'feeding';
+export type AppState = 'selection' | 'ready' | 'focusing' | 'completed' | 'feeding' | 'breaking' | 'break_completed';
 export type CompanionState = 'idle' | 'sad' | 'angry' | 'happy';
 export type ModeType = 'menu' | 'ar' | 'pure';
 
@@ -37,6 +37,12 @@ interface TimerContextType {
   
   modeType: ModeType;
   setModeType: (mode: ModeType) => void;
+  
+  // Break Time Lifecycle (Option A)
+  startBreakSession: (mins?: number) => void;
+  skipBreak: () => void;
+  startNextFocusSession: () => void;
+  isQuickTest: boolean;
   
   // Anti-gravity & Anti-distraction States
   isDistracted: boolean;
@@ -75,6 +81,7 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   // Anti-gravity Distraction & Exit Modal States
   const [isDistracted, setIsDistracted] = useState<boolean>(false);
   const [isConfirmingExit, setIsConfirmingExit] = useState<boolean>(false);
+  const [isQuickTest, setIsQuickTest] = useState<boolean>(false);
 
   // Library Silent & Continuous Vibration Alarm States (Option A)
   const [isLibraryMode, setIsLibraryMode] = useState<boolean>(true);
@@ -98,6 +105,13 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     if (alarmTimeoutRef.current) {
       window.clearTimeout(alarmTimeoutRef.current);
       alarmTimeoutRef.current = null;
+    }
+    if (audioRef.current) {
+      try {
+        audioRef.current.loop = false;
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      } catch (_) {}
     }
     if ('vibrate' in navigator) {
       navigator.vibrate(0);
@@ -203,16 +217,25 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     targetEndTime.current = Date.now() + timeLeft * 1000;
   };
 
-  // Quick duration capsules (15m / 25m / 45m)
+  // Quick duration capsules (15m / 25m / 45m) with Smart Break Pairing (Option A)
   const setPresetDuration = (mins: number) => {
+    setIsQuickTest(false);
     setWorkDuration(mins);
+    // Smart break pairing: 15/25 -> 5m, 45 -> 10m (Issue 4 Option A)
+    if (mins >= 45) {
+      setBreakDuration(10);
+    } else {
+      setBreakDuration(5);
+    }
     if (!isActive) {
       setTimeLeft(mins * 60);
     }
   };
 
   const setPresetSeconds = (secs: number) => {
+    setIsQuickTest(true);
     setWorkDuration(Math.max(1, Math.round(secs / 60)));
+    setBreakDuration(5); // 5s for fast testing
     if (!isActive) {
       setTimeLeft(secs);
     }
@@ -220,28 +243,33 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   // Triggered when user pokes the companion
   const triggerCompanionReaction = () => {
-    if (appState === 'focusing' && !isDistracted) {
+    if ((appState === 'focusing' || appState === 'breaking') && !isDistracted) {
       setCompanionState('happy');
       setTimeout(() => {
-        setCompanionState(isActive ? 'sad' : 'angry');
+        setCompanionState(isActive ? (mode === 'work' ? 'sad' : 'idle') : 'angry');
       }, 2000);
     }
   };
 
   // Reset timer when duration or mode changes (if not active)
   useEffect(() => {
-    if (!isActive && appState !== 'completed' && appState !== 'feeding') {
+    if (!isActive && appState !== 'completed' && appState !== 'feeding' && appState !== 'breaking' && appState !== 'break_completed') {
       setTimeLeft(mode === 'work' ? workDuration * 60 : breakDuration * 60);
     }
   }, [workDuration, breakDuration, mode, isActive, appState]);
 
-  // Main countdown loop
+  // Main countdown loop (Handles both Focus Mode & Break Mode)
   useEffect(() => {
     let interval: number | undefined;
 
     if (isActive && targetEndTime.current !== null && !isDistracted) {
-      setAppState('focusing');
-      setCompanionState('sad'); // "專注疲累"
+      if (mode === 'work') {
+        setAppState('focusing');
+        setCompanionState('sad'); // "專注疲累"
+      } else {
+        setAppState('breaking');
+        setCompanionState('idle'); // "放鬆發呆"
+      }
       
       interval = window.setInterval(() => {
         const now = Date.now();
@@ -252,50 +280,92 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           // Timer finished!
           setIsActive(false);
           targetEndTime.current = null;
-          setAppState('completed');
-          setCompanionState('happy'); // "完成開心"
           
-          setIsAlarmActive(true);
+          if (mode === 'work') {
+            // === 1. Focus Session Complete ===
+            setAppState('completed');
+            setCompanionState('happy'); // "完成開心"
+            setIsAlarmActive(true);
 
-          // Only play audio alarm if NOT in Library Silent Mode
-          if (!isLibraryMode && audioRef.current) {
-            audioRef.current.play().catch(e => console.log('Audio play failed:', e));
-          }
-
-          // Continuous Gentle Pulse Vibration (Option A: Heartbeat [150, 100, 150] every 1.5s)
-          if ('vibrate' in navigator) {
-            navigator.vibrate([150, 100, 150]);
-          }
-          if (vibrationIntervalRef.current) window.clearInterval(vibrationIntervalRef.current);
-          vibrationIntervalRef.current = window.setInterval(() => {
-            if ('vibrate' in navigator) {
-              navigator.vibrate([150, 100, 150]);
+            // 8-Second Sustained Audio Loop (Option A & Issue 2)
+            if (!isLibraryMode && audioRef.current) {
+              try {
+                audioRef.current.loop = true;
+                audioRef.current.currentTime = 0;
+                audioRef.current.play().catch(e => console.log('Audio play failed:', e));
+              } catch (_) {}
             }
-          }, 1500);
 
-          // 30s auto-stop fuse to protect battery & prevent long resonance
-          if (alarmTimeoutRef.current) window.clearTimeout(alarmTimeoutRef.current);
-          alarmTimeoutRef.current = window.setTimeout(() => {
-            stopAlarm();
-          }, 30000);
+            // Continuous Sustained Vibration (Option A: 400ms solid pulse every 1.1s)
+            if ('vibrate' in navigator) {
+              navigator.vibrate([400, 150, 400, 150]);
+            }
+            if (vibrationIntervalRef.current) window.clearInterval(vibrationIntervalRef.current);
+            vibrationIntervalRef.current = window.setInterval(() => {
+              if ('vibrate' in navigator) {
+                navigator.vibrate([400, 150, 400, 150]);
+              }
+            }, 1100);
 
-          // Native notification
-          const title = mode === 'work' ? 'Focus Session Complete!' : 'Break Time Over!';
-          const body = mode === 'work' ? 'Great job! Time for a break.' : 'Ready to focus again?';
-          
-          if ('Notification' in window && Notification.permission === 'granted') {
-            if ('serviceWorker' in navigator) {
-              navigator.serviceWorker.ready.then(registration => {
-                registration.showNotification(title, { 
-                  body, 
-                  icon: '/IMG_6057.PNG',
-                  vibrate: [150, 100, 150, 100, 150] 
-                } as any);
-              }).catch(() => {
+            // 8-Second Auto-Silence Safety Fuse (Stops automatically to prevent library disturbance)
+            if (alarmTimeoutRef.current) window.clearTimeout(alarmTimeoutRef.current);
+            alarmTimeoutRef.current = window.setTimeout(() => {
+              stopAlarm();
+            }, 8000);
+
+            // Native notification
+            if ('Notification' in window && Notification.permission === 'granted') {
+              const title = 'Focus Session Complete!';
+              const body = 'Great job! Time for a well-deserved break.';
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.ready.then(registration => {
+                  registration.showNotification(title, { 
+                    body, 
+                    icon: '/IMG_6057.PNG',
+                    vibrate: [400, 150, 400, 150] 
+                  } as any);
+                }).catch(() => {
+                  new Notification(title, { body, icon: '/IMG_6057.PNG' });
+                });
+              } else {
                 new Notification(title, { body, icon: '/IMG_6057.PNG' });
-              });
-            } else {
-              new Notification(title, { body, icon: '/IMG_6057.PNG' });
+              }
+            }
+          } else {
+            // === 2. Break Session Complete (Issue 5 Option A) ===
+            setAppState('break_completed');
+            setCompanionState('happy');
+            setIsAlarmActive(true);
+
+            // Gentle completion reminder (5 seconds)
+            if (!isLibraryMode && audioRef.current) {
+              try {
+                audioRef.current.loop = true;
+                audioRef.current.currentTime = 0;
+                audioRef.current.play().catch(e => console.log('Audio play failed:', e));
+              } catch (_) {}
+            }
+
+            if ('vibrate' in navigator) {
+              navigator.vibrate([300, 200, 300, 200]);
+            }
+            if (vibrationIntervalRef.current) window.clearInterval(vibrationIntervalRef.current);
+            vibrationIntervalRef.current = window.setInterval(() => {
+              if ('vibrate' in navigator) {
+                navigator.vibrate([300, 200, 300, 200]);
+              }
+            }, 1000);
+
+            if (alarmTimeoutRef.current) window.clearTimeout(alarmTimeoutRef.current);
+            alarmTimeoutRef.current = window.setTimeout(() => {
+              stopAlarm();
+            }, 5000);
+
+            // Native notification
+            if ('Notification' in window && Notification.permission === 'granted') {
+              const title = 'Break Time Over!';
+              const body = `Ready to focus again on ${subject}?`;
+              new Notification(title, { body, icon: '/IMG_6054.PNG' });
             }
           }
         }
@@ -308,7 +378,7 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, mode, appState, isDistracted, isLibraryMode]);
+  }, [isActive, mode, appState, isDistracted, isLibraryMode, subject]);
 
   const toggleTimer = async () => {
     if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
@@ -317,7 +387,11 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     if (!isActive) {
       targetEndTime.current = Date.now() + timeLeft * 1000;
-      setAppState('focusing');
+      if (mode === 'work') {
+        setAppState('focusing');
+      } else {
+        setAppState('breaking');
+      }
       setIsDistracted(false);
       
       if (audioRef.current) {
@@ -334,15 +408,53 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setIsActive(false);
     targetEndTime.current = null;
     setIsDistracted(false);
+    setMode('work');
     setAppState('selection');
     setCompanionState('idle');
-    setTimeLeft(mode === 'work' ? workDuration * 60 : breakDuration * 60);
+    setTimeLeft(workDuration * 60);
   };
 
   const feedCompanion = () => {
     stopAlarm();
     setAppState('feeding');
     setCompanionState('happy');
+  };
+
+  // Break Time Lifecycle (Option A)
+  const startBreakSession = (mins?: number) => {
+    stopAlarm();
+    const chosenMins = mins !== undefined ? mins : breakDuration;
+    setBreakDuration(chosenMins);
+    setMode('break');
+    setAppState('breaking');
+    setCompanionState('idle'); // Relaxed 發呆 (IMG_6054)
+    
+    const breakSecs = isQuickTest ? 5 : chosenMins * 60;
+    setTimeLeft(breakSecs);
+    targetEndTime.current = Date.now() + breakSecs * 1000;
+    setIsActive(true);
+  };
+
+  const skipBreak = () => {
+    stopAlarm();
+    setIsActive(false);
+    targetEndTime.current = null;
+    setMode('work');
+    setAppState('selection');
+    setCompanionState('idle');
+    setTimeLeft(workDuration * 60);
+  };
+
+  const startNextFocusSession = () => {
+    stopAlarm();
+    setMode('work');
+    setAppState('focusing');
+    setCompanionState('sad'); // Focusing
+    
+    const focusSecs = isQuickTest ? 5 : workDuration * 60;
+    setTimeLeft(focusSecs);
+    targetEndTime.current = Date.now() + focusSecs * 1000;
+    setIsActive(true);
   };
 
   // Safe Home Exit Flow (No reload!)
@@ -365,6 +477,7 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setIsActive(false);
     targetEndTime.current = null;
     setIsDistracted(false);
+    setMode('work');
     setAppState('selection');
     setCompanionState('idle');
     setTimeLeft(workDuration * 60);
@@ -400,6 +513,10 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       isGracePeriod,
       modeType,
       setModeType,
+      startBreakSession,
+      skipBreak,
+      startNextFocusSession,
+      isQuickTest,
       isDistracted,
       recoverFromDistraction,
       isConfirmingExit,
