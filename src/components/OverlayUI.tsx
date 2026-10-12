@@ -342,6 +342,22 @@ export const OverlayUI: React.FC = () => {
               {isLibraryMode ? '🤫 圖書館靜音震動模式 (ON)' : '🔔 正常響鈴模式'}
             </button>
 
+            {/* iPhone Silent Switch Sticky Note Reminder (Issue 3 Option A) */}
+            <div style={{
+              background: '#FFF9E6',
+              border: '2px dashed #B88655',
+              borderRadius: '12px',
+              padding: '5px 12px',
+              fontSize: '0.74rem',
+              color: '#8B6B52',
+              fontWeight: 700,
+              maxWidth: '300px',
+              textAlign: 'center',
+              lineHeight: 1.35
+            }}>
+              💡 iPhone 提示：若側邊為橘色靜音檔，將以全屏溫暖光芒為您提醒～
+            </div>
+
             <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
               <button className="icon-button" onClick={() => setAppState('selection')} title="重選科目">
                 <Undo size={32}/>

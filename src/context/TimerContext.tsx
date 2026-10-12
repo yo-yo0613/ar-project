@@ -1,5 +1,11 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
+import { 
+  unlockAudioContext, 
+  startLoopingChime, 
+  stopLoopingChime, 
+  playChimeSequence 
+} from '../utils/audioSynthesizer';
 
 type TimerMode = 'work' | 'break';
 export type AppState = 'selection' | 'ready' | 'focusing' | 'completed' | 'feeding' | 'breaking' | 'break_completed';
@@ -98,6 +104,7 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const stopAlarm = () => {
     setIsAlarmActive(false);
+    stopLoopingChime();
     if (vibrationIntervalRef.current) {
       window.clearInterval(vibrationIntervalRef.current);
       vibrationIntervalRef.current = null;
@@ -186,26 +193,37 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     };
   }, [isActive, appState, isDistracted]);
 
-  // Anti-distraction: Page Visibility API & blur detection
+  // Anti-distraction & iOS Background Timestamp Delta Catch-up (Issue 5 Option A)
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (isActive && appState === 'focusing' && document.hidden) {
-        // User switched tabs or minimized app!
-        setIsDistracted(true);
-        setCompanionState('angry');
-        setIsActive(false); // Pause timer during violation
-        targetEndTime.current = null;
-        
-        // Vibrate to warn
-        if ('vibrate' in navigator) {
-          navigator.vibrate([200, 100, 200, 100, 300]);
+    const handleVisibilityOrFocus = () => {
+      if (document.hidden) {
+        if (isActive && appState === 'focusing') {
+          // User switched tabs or minimized app!
+          setIsDistracted(true);
+          setCompanionState('angry');
+          setIsActive(false); // Pause timer during violation
+          targetEndTime.current = null;
+          
+          // Vibrate to warn
+          if ('vibrate' in navigator) {
+            navigator.vibrate([200, 100, 200, 100, 300]);
+          }
+        }
+      } else {
+        // App is visible/focused again! Instantly calculate timestamp delta (Issue 5 Option A)
+        if (isActive && targetEndTime.current !== null) {
+          const now = Date.now();
+          const remaining = Math.max(0, Math.ceil((targetEndTime.current - now) / 1000));
+          setTimeLeft(remaining);
         }
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+    window.addEventListener('focus', handleVisibilityOrFocus);
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
+      window.removeEventListener('focus', handleVisibilityOrFocus);
     };
   }, [isActive, appState]);
 
@@ -287,13 +305,9 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             setCompanionState('happy'); // "完成開心"
             setIsAlarmActive(true);
 
-            // 8-Second Sustained Audio Loop (Option A & Issue 2)
-            if (!isLibraryMode && audioRef.current) {
-              try {
-                audioRef.current.loop = true;
-                audioRef.current.currentTime = 0;
-                audioRef.current.play().catch(e => console.log('Audio play failed:', e));
-              } catch (_) {}
+            // 8-Second Sustained Web Audio Marimba Chime (100% iOS & Android compatible, Issue 1 Option A)
+            if (!isLibraryMode) {
+              startLoopingChime();
             }
 
             // Continuous Sustained Vibration (Option A: 400ms solid pulse every 1.1s)
@@ -337,13 +351,9 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             setCompanionState('happy');
             setIsAlarmActive(true);
 
-            // Gentle completion reminder (5 seconds)
-            if (!isLibraryMode && audioRef.current) {
-              try {
-                audioRef.current.loop = true;
-                audioRef.current.currentTime = 0;
-                audioRef.current.play().catch(e => console.log('Audio play failed:', e));
-              } catch (_) {}
+            // Gentle completion Marimba chime reminder (Web Audio API)
+            if (!isLibraryMode) {
+              playChimeSequence();
             }
 
             if ('vibrate' in navigator) {
@@ -381,6 +391,9 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, [isActive, mode, appState, isDistracted, isLibraryMode, subject]);
 
   const toggleTimer = async () => {
+    // Unlock Web Audio API on iOS Safari inside user interaction gesture
+    unlockAudioContext();
+
     if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
       await Notification.requestPermission();
     }
@@ -393,10 +406,6 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         setAppState('breaking');
       }
       setIsDistracted(false);
-      
-      if (audioRef.current) {
-        audioRef.current.load();
-      }
     } else {
       targetEndTime.current = null;
     }
@@ -423,6 +432,7 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   // Break Time Lifecycle (Option A)
   const startBreakSession = (mins?: number) => {
     stopAlarm();
+    unlockAudioContext();
     const chosenMins = mins !== undefined ? mins : breakDuration;
     setBreakDuration(chosenMins);
     setMode('break');
@@ -447,6 +457,7 @@ export const TimerProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const startNextFocusSession = () => {
     stopAlarm();
+    unlockAudioContext();
     setMode('work');
     setAppState('focusing');
     setCompanionState('sad'); // Focusing
